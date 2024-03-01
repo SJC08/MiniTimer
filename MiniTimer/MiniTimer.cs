@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 
-namespace AS.MiniTimer
+namespace Asjc.MiniTimer
 {
     public class MiniTimer
     {
