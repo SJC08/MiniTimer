@@ -1,2 +1,3 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using Asjc.MiniTimer;
+
+MiniTimer timer = new(500, true, _ => Console.WriteLine(DateTime.Now));
