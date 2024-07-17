@@ -1,15 +1,13 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
+﻿using System.Diagnostics;
 
 namespace Asjc.MiniTimer
 {
     public class MiniTimer
     {
         private bool enabled;
-        private Thread thread;
-        private readonly AutoResetEvent are = new AutoResetEvent(false);
-        private readonly Stopwatch stopwatch = new Stopwatch();
+        private Thread? thread;
+        private readonly AutoResetEvent are = new(false);
+        private readonly Stopwatch stopwatch = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MiniTimer"/> class.
@@ -67,7 +65,7 @@ namespace Asjc.MiniTimer
 
         public bool IsRunning => thread != null && thread.IsAlive;
 
-        public event Action<MiniTimer> Elapsed;
+        public event Action<MiniTimer>? Elapsed;
 
         public void Start() => Enabled = true;
 
