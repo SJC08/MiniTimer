@@ -28,7 +28,7 @@ namespace Asjc.MiniTimer
         public MiniTimer(int interval, bool enabled) : this(interval) => Enabled = enabled;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MiniTimer"/> class with the specified <paramref name="interval"/>, <paramref name="enabled"/> status, and <paramref name="elapsed"/> event handler.
+        /// Initializes a new instance of the <see cref="MiniTimer"/> class with the specified <paramref name="interval"/>, <paramref name="enabled"/> status, and <paramref name="elapsed"/> event.
         /// </summary>
         /// <param name="interval">The interval in milliseconds.</param>
         /// <param name="enabled">The enabled status of the timer.</param>
@@ -36,18 +36,29 @@ namespace Asjc.MiniTimer
         public MiniTimer(int interval, bool enabled, Action<MiniTimer> elapsed) : this(interval, enabled) => Elapsed += elapsed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MiniTimer"/> class with the specified <paramref name="interval"/> and <paramref name="elapsed"/> event handler.
+        /// Initializes a new instance of the <see cref="MiniTimer"/> class with the specified <paramref name="interval"/> and <paramref name="elapsed"/> event.
         /// </summary>
         /// <param name="interval">The interval in milliseconds.</param>
         /// <param name="elapsed">The enabled status of the timer.</param>
         public MiniTimer(int interval, Action<MiniTimer> elapsed) : this(interval) => Elapsed += elapsed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MiniTimer"/> class with the specified <paramref name="elapsed"/> event handler.
+        /// Initializes a new instance of the <see cref="MiniTimer"/> class with the specified <paramref name="elapsed"/> event.
         /// </summary>
         /// <param name="elapsed">The enabled status of the timer.</param>
         public MiniTimer(Action<MiniTimer> elapsed) => Elapsed += elapsed;
 
+        /// <summary>
+        /// Gets or sets the interval, expressed in milliseconds, at which to raise the <see cref="Elapsed"/> event.
+        /// </summary>
+        public int Interval { get; set; }
+
+        /// <summary>
+        /// Gets or sets a <see langword="bool"/> indicating whether the <see cref="MiniTimer"/> needs to be enabled.
+        /// </summary>
+        /// <remarks>
+        /// Even if the value is <see langword="false"/>, the timer may keep running.
+        /// </remarks>
         public bool Enabled
         {
             get => enabled;
@@ -61,18 +72,37 @@ namespace Asjc.MiniTimer
             }
         }
 
-        public int Interval { get; set; }
-
+        /// <summary>
+        /// Gets or sets a <see langword="bool"/> indicating whether the <see cref="MiniTimer"/> is running.
+        /// </summary>
         public bool IsRunning => thread != null && thread.IsAlive;
 
+        /// <summary>
+        /// Occurs when the interval elapses.
+        /// </summary>
         public event Action<MiniTimer>? Elapsed;
 
+        /// <summary>
+        /// Starts the <see cref="MiniTimer"/> by setting <see cref="Enabled"/> to <see langword="true"/>.
+        /// </summary>
         public void Start() => Enabled = true;
 
+        /// <summary>
+        /// Starts the <see cref="MiniTimer"/> by setting <see cref="Enabled"/> to <see langword="false"/>.
+        /// </summary>
         public void Stop() => Enabled = false;
 
+        /// <summary>
+        /// Waits for the thread to end.
+        /// </summary>
+        /// <remarks>
+        /// This is usually waiting for the <see cref="Elapsed"/> event.
+        /// </remarks>
         public void Wait() => thread?.Join();
 
+        /// <summary>
+        /// Stops and waits for the <see cref="MiniTimer"/>.
+        /// </summary>
         public void StopAndWait()
         {
             Stop();
