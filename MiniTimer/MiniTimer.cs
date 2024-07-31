@@ -3,8 +3,11 @@
 namespace Asjc.MiniTimer
 {
     /// <summary>
-    /// Provides a mini timer for general timing tasks.
+    /// Provides a simple timer for general timing tasks.
     /// </summary>
+    /// <remarks>
+    /// By default, the timer executes in a new thread that is created each time it is started.
+    /// </remarks>
     public class MiniTimer
     {
         private bool enabled;
@@ -73,6 +76,10 @@ namespace Asjc.MiniTimer
         /// <summary>
         /// Gets or sets the interval, expressed in milliseconds, at which to raise the <see cref="Elapsed"/> event.
         /// </summary>
+        /// <remarks>
+        /// This is measured from the time before each <see cref="Elapsed"/> call.
+        /// In fact, you can even change this value at any time except when waiting.
+        /// </remarks>
         public int Interval { get; set; }
 
         /// <summary>
