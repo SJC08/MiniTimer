@@ -31,10 +31,12 @@ namespace Asjc.MiniTimer
     /// </remarks>
     public class MiniTimer : IDisposable
     {
-        private bool enabled;
-        private Thread? thread;
+        private volatile bool enabled;
+        private volatile Thread? thread;
+        private volatile TimerStatus status = TimerStatus.Stopped;
         private readonly AutoResetEvent are = new(false);
         private readonly Stopwatch stopwatch = new();
+        private readonly object syncLock = new();
         private bool disposed = false;
 
         /// <summary>
@@ -101,26 +103,45 @@ namespace Asjc.MiniTimer
         /// </remarks>
         public bool Enabled
         {
-            get => enabled;
+            get
+            {
+                lock (syncLock) return enabled;
+            }
             set
             {
-                enabled = value;
-                if (enabled)
-                    StartTimer();
-                else
-                    StopTimer();
+                lock (syncLock)
+                {
+                    if (enabled == value) return;
+                    enabled = value;
+                    if (enabled)
+                        StartTimer();
+                    else
+                        StopTimer();
+                }
             }
         }
 
         /// <summary>
         /// Gets a <see langword="bool"/> indicating whether the <see cref="MiniTimer"/> is running.
         /// </summary>
-        public bool IsRunning => thread != null && thread.IsAlive;
+        public bool IsRunning
+        {
+            get
+            {
+                lock (syncLock) return thread != null && thread.IsAlive;
+            }
+        }
 
         /// <summary>
         /// Gets the current operational status of the <see cref="MiniTimer"/>.
         /// </summary>
-        public TimerStatus Status { get; private set; } = TimerStatus.Stopped;
+        public TimerStatus Status
+        {
+            get
+            {
+                lock (syncLock) return status;
+            }
+        }
 
         /// <summary>
         /// Occurs when the interval elapses.
@@ -145,15 +166,11 @@ namespace Asjc.MiniTimer
         /// <summary>
         /// Stops and waits for the <see cref="MiniTimer"/>.
         /// </summary>
-        public void StopAndWait()
-        {
-            Stop();
-            Wait();
-        }
+        public void StopAndWait() { Stop(); Wait(); }
 
         private void StartTimer()
         {
-            if (!IsRunning)
+            if (thread == null || !thread.IsAlive)
             {
                 thread = new Thread(TimerThread);
                 thread.Start();
@@ -162,7 +179,7 @@ namespace Asjc.MiniTimer
 
         private void StopTimer()
         {
-            if (IsRunning)
+            if (thread != null && thread.IsAlive)
             {
                 are.Set();
             }
@@ -175,15 +192,15 @@ namespace Asjc.MiniTimer
                 while (enabled)
                 {
                     stopwatch.Restart();
-                    Status = TimerStatus.Executing;
+                    status = TimerStatus.Executing;
                     Elapsed?.Invoke(this);
-                    Status = TimerStatus.Waiting;
+                    status = TimerStatus.Waiting;
                     are.WaitOne(Math.Max(Interval - (int)stopwatch.ElapsedMilliseconds, 0));
                 }
             }
             finally
             {
-                Status = TimerStatus.Stopped;
+                status = TimerStatus.Stopped;
             }
         }
 
